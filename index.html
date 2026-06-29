@@ -423,6 +423,13 @@
     </style>
 </head>
 <body>
+
+<!-- ФОНОВАЯ МУЗЫКА -->
+<audio id="bgMusic" loop>
+    <source src="8e5a1d6a3ca5721.mp3" type="audio/mpeg">
+    Ваш браузер не поддерживает аудио.
+</audio>
+
 <div class="game-wrapper">
     <div class="game-container">
         <div class="game-layout">
@@ -1176,6 +1183,40 @@
     
     document.getElementById('restartGame').addEventListener('click', () => { if(!gameClosed && !isBlocked) restart(); });
     fetchTasksFromGitHub();
+
+    // === ЛОГИКА МУЗЫКИ ===
+    const bgMusic = document.getElementById('bgMusic');
+
+    // Пытаемся сразу запустить музыку. 
+    // Современные браузеры блокируют автозапуск звука. 
+    // Чтобы заставить музыку играть, нужно взаимодействие пользователя (клик).
+    function tryPlayMusic() {
+        bgMusic.volume = 0.4; // Уровень громкости (0.0 - 1.0)
+        bgMusic.play().catch(e => {
+            console.log("Автозапуск заблокирован браузером, ждем клик.");
+        });
+    }
+
+    // Запускаем при загрузке
+    tryPlayMusic();
+
+    // Если браузер заблокировал звук, мы включим его при первом клике по игре
+    document.addEventListener('click', function firstClick() {
+        if (bgMusic.paused) {
+            bgMusic.play();
+        }
+        // Удаляем обработчик после первого клика, чтобы не грузить память
+        document.removeEventListener('click', firstClick);
+    });
+
+    // Чтобы перезапуск игры не останавливал музыку
+    const originalRestart = restart;
+    restart = function() {
+        originalRestart();
+        if (bgMusic.paused) {
+            bgMusic.play().catch(() => {});
+        }
+    };
 </script>
 </body>
 </html>
